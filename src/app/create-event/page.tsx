@@ -73,6 +73,11 @@ export default function CreateEventPage() {
     setFormValues(watchedValues);
   }, [watchedValues]);
 
+  // Debug banner state changes
+  useEffect(() => {
+    console.log('Create event banner state changed:', eventBanner);
+  }, [eventBanner]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     

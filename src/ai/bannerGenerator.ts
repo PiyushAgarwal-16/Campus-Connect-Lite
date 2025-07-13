@@ -122,7 +122,8 @@ async function simulateBannerGeneration(prompt: string, input: BannerGenerationI
   const textColor = 'ffffff';
   
   // Using placehold.co which is already configured in next.config.ts
-  return `https://placehold.co/800x450/${bgColor}/${textColor}?text=${title}+%0A${category}&font=montserrat`;
+  // Force PNG format to avoid SVG issues
+  return `https://placehold.co/800x450/${bgColor}/${textColor}.png?text=${title}+%0A${category}&font=montserrat`;
 }
 
 // Helper function to create banner with external image generation services

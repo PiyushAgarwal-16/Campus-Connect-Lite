@@ -34,7 +34,7 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
       
       const fetchedEvents = querySnapshot.docs.map(doc => {
         const data = doc.data();
-        console.log("Event data:", { id: doc.id, ...data });
+        console.log("Event data:", { id: doc.id, title: data.title, hasBanner: !!data.banner });
         return {
           id: doc.id,
           ...data,
@@ -60,7 +60,7 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     
-    console.log("Attempting to add event:", newEventData);
+    console.log("Attempting to add event:", { title: newEventData.title, hasBanner: !!newEventData.banner });
     console.log("User:", user);
     
     try {

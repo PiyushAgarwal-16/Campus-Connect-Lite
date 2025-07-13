@@ -89,6 +89,7 @@ export default function BannerManager({ event, onBannerUpdate, disabled = false 
           generatedAt: data.banner.generatedAt,
           prompt: data.banner.prompt
         };
+        console.log('Banner generated successfully, updating with:', bannerData);
         onBannerUpdate(bannerData);
       } else {
         throw new Error('Invalid response from banner generation service');
