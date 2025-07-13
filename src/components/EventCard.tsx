@@ -111,7 +111,7 @@ const EventCard = ({ event }: EventCardProps) => {
         <CardHeader>
           <div className="relative h-40 w-full mb-4 rounded-t-lg overflow-hidden">
             <Image
-              src={`https://placehold.co/600x400.png`}
+              src={event.banner?.url || `https://placehold.co/600x400.png`}
               alt={event.title}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -119,6 +119,11 @@ const EventCard = ({ event }: EventCardProps) => {
             />
             <div className="absolute top-2 right-2 flex gap-2">
               <Badge className="" variant="secondary">{event.category}</Badge>
+              {event.banner && (
+                <Badge variant="outline" className="bg-black/70 text-white border-white/20">
+                  AI Banner
+                </Badge>
+              )}
               {isRegistered && (
                 <Badge variant="default" className="bg-green-600 hover:bg-green-700">
                   <Check className="w-3 h-3 mr-1" />

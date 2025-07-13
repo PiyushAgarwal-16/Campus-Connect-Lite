@@ -145,7 +145,7 @@ export default function EventDetailsPage() {
     <div className="min-h-screen bg-background">
       <div className="relative h-96 w-full overflow-hidden">
         <Image
-          src="https://placehold.co/1200x400.png"
+          src={event.banner?.url || "https://placehold.co/1200x400.png"}
           alt={event.title}
           fill
           className="object-cover"
@@ -159,6 +159,11 @@ export default function EventDetailsPage() {
             <div className="p-6 pb-0">
               <div className="flex flex-wrap items-center gap-3 mb-4">
                 <Badge variant="outline" className="text-lg">{event.category}</Badge>
+                {event.banner && (
+                  <Badge variant="outline" className="bg-gradient-to-r from-blue-600 to-purple-600 text-white border-none">
+                    AI Banner
+                  </Badge>
+                )}
                 {loadingCount ? (
                   <Skeleton className="h-6 w-24" />
                 ) : (

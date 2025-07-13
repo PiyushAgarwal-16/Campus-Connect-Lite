@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AIDescriptionGenerator } from '@/components/AIDescriptionGenerator';
+import BannerManager from '@/components/BannerManager';
 
 const formSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters.'),
@@ -31,6 +33,18 @@ export default function CreateEventPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [eventBanner, setEventBanner] = useState<{ url: string; generatedAt: string; prompt: string } | null>(null);
+  
+  // Watch form values for real-time updates
+  const [formValues, setFormValues] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    endTime: '',
+    location: '',
+    category: ''
+  });
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'organizer')) {
@@ -52,11 +66,23 @@ export default function CreateEventPage() {
     },
   });
 
+  // Watch form values for banner generation
+  const watchedValues = form.watch();
+  
+  useEffect(() => {
+    setFormValues(watchedValues);
+  }, [watchedValues]);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     
     try {
-      await addEvent(values);
+      const eventData = {
+        ...values,
+        ...(eventBanner && { banner: eventBanner })
+      };
+      
+      await addEvent(eventData);
       
       toast({
         title: 'Event Created!',
@@ -64,6 +90,7 @@ export default function CreateEventPage() {
       });
       
       form.reset();
+      setEventBanner(null);
       router.push('/');
     } catch (error) {
       console.error("Error creating event:", error);
@@ -116,7 +143,23 @@ export default function CreateEventPage() {
               <FormField control={form.control} name="description" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Description</FormLabel>
-                  <FormControl><Textarea placeholder="Tell us more about the event..." {...field} /></FormControl>
+                  <FormControl>
+                    <div className="space-y-3">
+                      <Textarea 
+                        placeholder="Tell us more about the event..." 
+                        {...field} 
+                        rows={6}
+                      />
+                      <AIDescriptionGenerator
+                        onDescriptionGenerated={(description) => {
+                          form.setValue('description', description);
+                        }}
+                        eventTitle={form.watch('title')}
+                        eventType={form.watch('category')}
+                        location={form.watch('location')}
+                      />
+                    </div>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -159,6 +202,27 @@ export default function CreateEventPage() {
                   <FormMessage />
                 </FormItem>
               )} />
+              
+              {/* Banner Management */}
+              <div className="space-y-4">
+                <BannerManager
+                  event={{
+                    id: '',
+                    title: formValues.title,
+                    description: formValues.description,
+                    date: formValues.date,
+                    time: formValues.time,
+                    endTime: formValues.endTime,
+                    location: formValues.location,
+                    category: formValues.category,
+                    organizer: { name: user?.name || '', contact: user?.email || '' },
+                    banner: eventBanner || undefined
+                  }}
+                  onBannerUpdate={setEventBanner}
+                  disabled={isSubmitting}
+                />
+              </div>
+              
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Creating Event..." : "Create Event"}
               </Button>

@@ -12,6 +12,11 @@ export interface Event {
     name: string;
     contact: string;
   };
+  banner?: {
+    url: string;
+    generatedAt: string;
+    prompt: string;
+  };
 }
 
 export interface User {

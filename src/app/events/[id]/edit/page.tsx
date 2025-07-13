@@ -12,6 +12,8 @@ import { ArrowLeft, Save } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { useEvents } from '@/contexts/EventContext';
 import { useToast } from '@/hooks/use-toast';
+import { AIDescriptionGenerator } from '@/components/AIDescriptionGenerator';
+import BannerManager from '@/components/BannerManager';
 import Link from 'next/link';
 
 export default function EditEventPage() {
@@ -24,6 +26,7 @@ export default function EditEventPage() {
   
   const event = getEventById(eventId);
   const [isLoading, setIsLoading] = useState(false);
+  const [eventBanner, setEventBanner] = useState<{ url: string; generatedAt: string; prompt: string } | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -47,6 +50,7 @@ export default function EditEventPage() {
         location: event.location,
         category: event.category
       });
+      setEventBanner(event.banner || null);
     }
   }, [event]);
 
@@ -115,7 +119,17 @@ export default function EditEventPage() {
     setIsLoading(true);
     
     try {
-      await updateEvent(eventId, formData);
+      const updateData = {
+        ...formData,
+        ...(eventBanner && { banner: eventBanner })
+      };
+      
+      // If banner was removed, explicitly set it to undefined
+      if (!eventBanner && event?.banner) {
+        updateData.banner = undefined;
+      }
+      
+      await updateEvent(eventId, updateData);
       toast({
         title: "Event Updated!",
         description: "Your event has been successfully updated.",
@@ -182,14 +196,24 @@ export default function EditEventPage() {
 
               <div>
                 <Label htmlFor="description">Description *</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Describe your event"
-                  rows={4}
-                  required
-                />
+                <div className="space-y-3">
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    placeholder="Describe your event"
+                    rows={6}
+                    required
+                  />
+                  <AIDescriptionGenerator
+                    onDescriptionGenerated={(description) => {
+                      handleInputChange('description', description);
+                    }}
+                    eventTitle={formData.title}
+                    eventType={formData.category}
+                    location={formData.location}
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -233,6 +257,26 @@ export default function EditEventPage() {
                   onChange={(e) => handleInputChange('location', e.target.value)}
                   placeholder="Event location"
                   required
+                />
+              </div>
+
+              {/* Banner Management */}
+              <div className="space-y-4">
+                <BannerManager
+                  event={{
+                    id: eventId,
+                    title: formData.title,
+                    description: formData.description,
+                    date: formData.date,
+                    time: formData.time,
+                    endTime: formData.endTime,
+                    location: formData.location,
+                    category: formData.category,
+                    organizer: event?.organizer || { name: user?.name || '', contact: user?.email || '' },
+                    banner: eventBanner || undefined
+                  }}
+                  onBannerUpdate={setEventBanner}
+                  disabled={isLoading}
                 />
               </div>
 
