@@ -52,19 +52,29 @@ export default function CreateEventPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     
-    addEvent(values);
-
-    toast({
-      title: 'Event Created!',
-      description: `"${values.title}" has been successfully created.`,
-    });
-    
-    form.reset();
-    setIsSubmitting(false);
-    router.push('/');
+    try {
+      await addEvent(values);
+      
+      toast({
+        title: 'Event Created!',
+        description: `"${values.title}" has been successfully created.`,
+      });
+      
+      form.reset();
+      router.push('/');
+    } catch (error) {
+      console.error("Error creating event:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to create event. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   if (loading || !user || user.role !== 'organizer') {

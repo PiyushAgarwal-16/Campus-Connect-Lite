@@ -28,4 +28,5 @@ export interface Registration {
   eventId: string;
   registrationDate: string;
   checkedIn?: boolean;
+  checkedInAt?: string;
 }

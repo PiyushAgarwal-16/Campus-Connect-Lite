@@ -83,7 +83,11 @@ export const RegistrationProvider = ({ children }: { children: ReactNode }) => {
   const markAttendance = async (registrationId: string) => {
     try {
       const regDocRef = doc(db, 'registrations', registrationId);
-      await updateDoc(regDocRef, { checkedIn: true });
+      const checkedInAt = new Date().toISOString();
+      await updateDoc(regDocRef, { 
+        checkedIn: true,
+        checkedInAt: checkedInAt
+      });
       
        // Re-fetch all registrations for organizer to get immediate update
       if (user?.role === 'organizer') {
@@ -91,7 +95,7 @@ export const RegistrationProvider = ({ children }: { children: ReactNode }) => {
       } else {
          setRegistrations(prev =>
             prev.map(reg =>
-              reg.id === registrationId ? { ...reg, checkedIn: true } : reg
+              reg.id === registrationId ? { ...reg, checkedIn: true, checkedInAt: checkedInAt } : reg
             )
           );
       }

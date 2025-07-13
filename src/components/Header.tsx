@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BookUser, Calendar, LogOut, PlusCircle, User as UserIcon, Building2, Ticket, ScanLine } from "lucide-react";
+import { BookUser, Calendar, LogOut, PlusCircle, User as UserIcon, Building2, Ticket, ScanLine, List } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const Header = () => {
@@ -40,11 +40,19 @@ const Header = () => {
 
           <nav className="hidden md:flex items-center gap-4">
             <Button variant="ghost" asChild>
-              <Link href="/">Events</Link>
+              <Link href="/">Home</Link>
+            </Button>
+            <Button variant="ghost" asChild>
+              <Link href="/events">All Events</Link>
             </Button>
             <Button variant="ghost" asChild>
               <Link href="/calendar">Calendar</Link>
             </Button>
+            {user?.role === 'student' && (
+              <Button variant="ghost" asChild>
+                <Link href="/my-registrations">My Registrations</Link>
+              </Button>
+            )}
             {user?.role === 'organizer' && (
               <>
                 <Button variant="ghost" asChild>
@@ -80,19 +88,21 @@ const Header = () => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="cursor-pointer">
-                    <Link href="/profile">
-                      <UserIcon className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </Link>
-                  </DropdownMenuItem>
-                   {user.role === 'student' && (
-                    <DropdownMenuItem asChild className="cursor-pointer">
-                        <Link href="/profile#my-tickets">
-                            <Ticket className="mr-2 h-4 w-4" />
-                            <span>My Tickets</span>
+                  {user.role === 'student' && (
+                    <>
+                      <DropdownMenuItem asChild className="cursor-pointer">
+                        <Link href="/my-registrations">
+                          <List className="mr-2 h-4 w-4" />
+                          <span>My Registrations</span>
                         </Link>
-                    </DropdownMenuItem>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild className="cursor-pointer">
+                        <Link href="/profile#my-tickets">
+                          <Ticket className="mr-2 h-4 w-4" />
+                          <span>My Tickets</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
                   {user.role === 'organizer' && (
                     <>
