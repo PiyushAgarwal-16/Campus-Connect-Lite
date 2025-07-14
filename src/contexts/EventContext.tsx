@@ -5,13 +5,14 @@ import React, { createContext, useState, useEffect, ReactNode, useContext, useCa
 import type { Event } from '@/lib/types';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/lib/firebase';
-import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, doc, updateDoc, where, deleteDoc } from 'firebase/firestore';
 
 interface EventContextType {
   events: Event[];
   loading: boolean;
   addEvent: (newEventData: Omit<Event, 'id' | 'organizer'>) => Promise<void>;
   updateEvent: (eventId: string, updatedData: Partial<Omit<Event, 'id' | 'organizer'>>) => Promise<void>;
+  deleteEvent: (eventId: string) => Promise<void>;
   exportAttendeeData: (eventId: string) => Promise<void>;
   getEventById: (id: string) => Event | undefined;
 }
@@ -230,12 +231,62 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const deleteEvent = async (eventId: string) => {
+    if (!user || user.role !== 'organizer') {
+      console.error("Only organizers can delete events.");
+      throw new Error("Only organizers can delete events.");
+    }
+
+    const eventToDelete = events.find(event => event.id === eventId);
+    if (!eventToDelete) {
+      console.error("Event not found.");
+      throw new Error("Event not found.");
+    }
+
+    // Check if the current user is the organizer of this event
+    if (eventToDelete.organizer.contact !== user.email) {
+      console.error("You can only delete events that you created.");
+      throw new Error("You can only delete events that you created.");
+    }
+
+    console.log("Attempting to delete event:", eventId);
+    
+    try {
+      // First, delete all registrations for this event
+      const registrationsQuery = query(
+        collection(db, 'registrations'), 
+        where('eventId', '==', eventId)
+      );
+      const registrationsSnapshot = await getDocs(registrationsQuery);
+      
+      const deleteRegistrationPromises = registrationsSnapshot.docs.map(doc => 
+        deleteDoc(doc.ref)
+      );
+      
+      if (deleteRegistrationPromises.length > 0) {
+        await Promise.all(deleteRegistrationPromises);
+        console.log(`Deleted ${deleteRegistrationPromises.length} registrations for event ${eventId}`);
+      }
+
+      // Then delete the event itself
+      await deleteDoc(doc(db, 'events', eventId));
+      console.log("Event deleted successfully from Firestore");
+      
+      // Refresh the events list
+      await fetchEvents();
+      
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      throw error;
+    }
+  };
+
   const getEventById = (id: string) => {
     return events.find(event => event.id === id);
   };
 
   return (
-    <EventContext.Provider value={{ events, loading, addEvent, updateEvent, exportAttendeeData, getEventById }}>
+    <EventContext.Provider value={{ events, loading, addEvent, updateEvent, deleteEvent, exportAttendeeData, getEventById }}>
       {children}
     </EventContext.Provider>
   );
