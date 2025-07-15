@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User, Mail, GraduationCap, Ticket } from 'lucide-react';
+import { Mail, GraduationCap, Ticket } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { useRegistrations } from '@/contexts/RegistrationContext';
@@ -18,7 +18,7 @@ export default function ProfilePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const { userRegistrations, loading: registrationsLoading } = useRegistrations();
-  const { getEventById, events } = useEvents();
+  const { getEventById } = useEvents();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -107,7 +107,7 @@ export default function ProfilePage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-muted-foreground text-center py-4">You haven't registered for any events yet.</p>
+                  <p className="text-muted-foreground text-center py-4">You haven&apos;t registered for any events yet.</p>
                 )}
               </CardContent>
             </div>

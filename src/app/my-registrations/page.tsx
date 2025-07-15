@@ -91,7 +91,7 @@ export default function MyRegistrationsPage() {
               <div className="space-y-2">
                 <h3 className="text-xl font-semibold">No Registrations Yet</h3>
                 <p className="text-muted-foreground">
-                  You haven't registered for any events yet. Browse available events to get started!
+                  You haven&apos;t registered for any events yet. Browse available events to get started!
                 </p>
               </div>
               <Button asChild>

@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useState, useEffect, ReactNode, useContext, useCallback } from 'react';
+import React, { createContext, useState, useEffect, ReactNode, useContext, useCallback, useMemo } from 'react';
 import type { Event } from '@/lib/types';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/lib/firebase';
@@ -51,11 +51,12 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  useEffect(() => {
+  // Initial fetch - only run once
+  useEffect(() => { // eslint-disable-line react-hooks/exhaustive-deps
     fetchEvents();
-  }, [fetchEvents]);
+  }, []); // Remove fetchEvents from dependencies to prevent infinite loop
 
-  const addEvent = async (newEventData: Omit<Event, 'id' | 'organizer'>) => {
+  const addEvent = useCallback(async (newEventData: Omit<Event, 'id' | 'organizer'>) => {
     if (!user || user.role !== 'organizer') {
       console.error("Only organizers can add events.");
       return;
@@ -83,9 +84,9 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error adding event to Firestore:", error);
       throw error; // Re-throw so the UI can handle it
     }
-  };
+  }, [user, fetchEvents]);
 
-  const updateEvent = async (eventId: string, updatedData: Partial<Omit<Event, 'id' | 'organizer'>>) => {
+  const updateEvent = useCallback(async (eventId: string, updatedData: Partial<Omit<Event, 'id' | 'organizer'>>) => {
     if (!user || user.role !== 'organizer') {
       console.error("Only organizers can update events.");
       return;
@@ -116,9 +117,9 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error updating event in Firestore:", error);
       throw error; // Re-throw so the UI can handle it
     }
-  };
+  }, [user, events, fetchEvents]);
 
-  const exportAttendeeData = async (eventId: string) => {
+  const exportAttendeeData = useCallback(async (eventId: string) => {
     if (!user || user.role !== 'organizer') {
       console.error("Only organizers can export attendee data.");
       return;
@@ -229,9 +230,9 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error exporting attendee data:", error);
       throw error;
     }
-  };
+  }, [user, events]);
 
-  const deleteEvent = async (eventId: string) => {
+  const deleteEvent = useCallback(async (eventId: string) => {
     if (!user || user.role !== 'organizer') {
       console.error("Only organizers can delete events.");
       throw new Error("Only organizers can delete events.");
@@ -279,14 +280,24 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
       console.error("Error deleting event:", error);
       throw error;
     }
-  };
+  }, [user, events, fetchEvents]);
 
-  const getEventById = (id: string) => {
+  const getEventById = useCallback((id: string) => {
     return events.find(event => event.id === id);
-  };
+  }, [events]);
+
+  const contextValue = useMemo(() => ({
+    events,
+    loading,
+    addEvent,
+    updateEvent,
+    deleteEvent,
+    exportAttendeeData,
+    getEventById
+  }), [events, loading, addEvent, updateEvent, deleteEvent, exportAttendeeData, getEventById]);
 
   return (
-    <EventContext.Provider value={{ events, loading, addEvent, updateEvent, deleteEvent, exportAttendeeData, getEventById }}>
+    <EventContext.Provider value={contextValue}>
       {children}
     </EventContext.Provider>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useEvents } from '@/contexts/EventContext';
@@ -35,23 +35,38 @@ export default function CreateEventPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [eventBanner, setEventBanner] = useState<{ url: string; generatedAt: string; prompt: string } | null>(null);
   
-  // Watch form values for real-time updates
-  const [formValues, setFormValues] = useState({
-    title: '',
-    description: '',
-    date: '',
-    time: '',
-    endTime: '',
-    location: '',
-    category: ''
-  });
+  // Stabilize the banner update callback
+  const handleBannerUpdate = useCallback((banner: { url: string; generatedAt: string; prompt: string } | null) => {
+    setEventBanner(banner);
+  }, []);
+
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'organizer')) {
-      toast({ variant: 'destructive', title: 'Unauthorized', description: 'You must be an organizer to create events.' });
+    if (loading || hasRedirected) return; // Don't do anything while loading or if already redirected
+    
+    if (!user) {
+      setHasRedirected(true);
+      toast({ 
+        variant: 'destructive', 
+        title: 'Authentication Required', 
+        description: 'Please log in to create events.' 
+      });
       router.push('/login');
+      return;
     }
-  }, [user, loading, router, toast]);
+    
+    if (user.role !== 'organizer') {
+      setHasRedirected(true);
+      toast({ 
+        variant: 'destructive', 
+        title: 'Organizer Access Required', 
+        description: 'Only organizers can create events. Please contact an administrator if you need organizer access.' 
+      });
+      router.push('/');
+      return;
+    }
+  }, [user, loading, router, toast, hasRedirected]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -69,9 +84,30 @@ export default function CreateEventPage() {
   // Watch form values for banner generation
   const watchedValues = form.watch();
   
-  useEffect(() => {
-    setFormValues(watchedValues);
-  }, [watchedValues]);
+  // Memoize the event object to prevent unnecessary re-renders
+  const memoizedEvent = useMemo(() => ({
+    id: '',
+    title: watchedValues.title || '',
+    description: watchedValues.description || '',
+    date: watchedValues.date || '',
+    time: watchedValues.time || '',
+    endTime: watchedValues.endTime || '',
+    location: watchedValues.location || '',
+    category: watchedValues.category || '',
+    organizer: { name: user?.name || '', contact: user?.email || '' },
+    banner: eventBanner || undefined
+  }), [
+    watchedValues.title,
+    watchedValues.description,
+    watchedValues.date,
+    watchedValues.time,
+    watchedValues.endTime,
+    watchedValues.location,
+    watchedValues.category,
+    user?.name,
+    user?.email,
+    eventBanner
+  ]);
 
   // Debug banner state changes
   useEffect(() => {
@@ -109,7 +145,7 @@ export default function CreateEventPage() {
     }
   }
 
-  if (loading || !user || user.role !== 'organizer') {
+  if (loading) {
     return (
         <div className="max-w-2xl mx-auto">
             <Card>
@@ -125,6 +161,64 @@ export default function CreateEventPage() {
                 </CardContent>
             </Card>
         </div>
+    );
+  }
+
+  if (!user && !hasRedirected) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-3xl font-headline">Authentication Required</CardTitle>
+            <CardDescription>Please log in to create events.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">You need to be logged in as an organizer to create events.</p>
+            <Button onClick={() => router.push('/login')} className="w-full">
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (user && user.role !== 'organizer' && !hasRedirected) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-3xl font-headline">Organizer Access Required</CardTitle>
+            <CardDescription>Only organizers can create events.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">
+              You are currently logged in as a {user.role}. Only users with organizer privileges can create events.
+            </p>
+            <div className="flex gap-4">
+              <Button onClick={() => router.push('/')} variant="outline" className="flex-1">
+                Go to Home
+              </Button>
+              <Button onClick={() => router.push('/events')} className="flex-1">
+                View Events
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Don't render the form if we're in the process of redirecting
+  if (hasRedirected) {
+    return (
+      <div className="max-w-2xl mx-auto">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p>Redirecting...</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -211,19 +305,8 @@ export default function CreateEventPage() {
               {/* Banner Management */}
               <div className="space-y-4">
                 <BannerManager
-                  event={{
-                    id: '',
-                    title: formValues.title,
-                    description: formValues.description,
-                    date: formValues.date,
-                    time: formValues.time,
-                    endTime: formValues.endTime,
-                    location: formValues.location,
-                    category: formValues.category,
-                    organizer: { name: user?.name || '', contact: user?.email || '' },
-                    banner: eventBanner || undefined
-                  }}
-                  onBannerUpdate={setEventBanner}
+                  event={memoizedEvent}
+                  onBannerUpdate={handleBannerUpdate}
                   disabled={isSubmitting}
                 />
               </div>

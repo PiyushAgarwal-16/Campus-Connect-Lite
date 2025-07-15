@@ -4,13 +4,12 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import type { User } from '@/lib/types';
 import { auth, db } from '@/lib/firebase';
-import { 
-  onAuthStateChanged, 
+import {
+  onAuthStateChanged,
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
   signOut,
-  updateProfile,
-  User as FirebaseUser
+  updateProfile
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 
@@ -80,7 +79,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       // Create user document in Firestore
       const userDocRef = doc(db, 'users', firebaseUser.uid);
-      const { password, ...userData } = data; // Don't store password in Firestore
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _password, ...userData } = data; // Don't store password in Firestore
       await setDoc(userDocRef, {
         name: userData.name,
         email: userData.email,

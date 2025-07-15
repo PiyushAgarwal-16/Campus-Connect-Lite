@@ -4,7 +4,7 @@
 import EventCard from "@/components/EventCard";
 import { useEvents } from "@/contexts/EventContext";
 import type { Event } from "@/lib/types";
-import { Skeleton } from "@/components/ui/skeleton";
+import { EventGridSkeleton } from "@/components/ui/EventSkeleton";
 
 export default function Home() {
   const { events, loading } = useEvents();
@@ -23,16 +23,7 @@ export default function Home() {
       <div>
         <h2 className="text-3xl font-headline font-semibold mb-6">Upcoming Events</h2>
         {loading ? (
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="space-y-4">
-                <Skeleton className="h-40 w-full rounded-lg" />
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-5 w-1/2" />
-                <Skeleton className="h-5 w-1/3" />
-              </div>
-            ))}
-          </div>
+          <EventGridSkeleton />
         ) : upcomingEvents.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {upcomingEvents.map((event) => (

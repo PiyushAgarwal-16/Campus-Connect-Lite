@@ -27,7 +27,7 @@ export default function CalendarPage() {
     <div>
       <div className="text-center mb-8">
         <h1 className="text-4xl font-headline font-bold text-primary">Event Calendar</h1>
-        <p className="text-muted-foreground mt-2">See what's happening on campus at a glance.</p>
+        <p className="text-muted-foreground mt-2">See what&apos;s happening on campus at a glance.</p>
       </div>
       <EventCalendar events={events} />
     </div>

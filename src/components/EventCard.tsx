@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -78,6 +79,7 @@ const EventCard = ({ event }: EventCardProps) => {
         description: `You are now registered for ${event.title}.`,
       });
     } catch (error) {
+      console.error('Registration failed:', error);
       toast({
         title: "Registration Failed",
         description: "Please try again.",
@@ -216,4 +218,4 @@ const EventCard = ({ event }: EventCardProps) => {
   );
 };
 
-export default EventCard;
+export default React.memo(EventCard);

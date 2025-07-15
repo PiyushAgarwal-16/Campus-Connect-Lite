@@ -60,6 +60,7 @@ export default function EventCalendar({ events }: EventCalendarProps) {
         description: `You are now registered for ${event.title}.`,
       });
     } catch (error) {
+      console.error('Registration failed:', error);
       toast({
         title: "Registration Failed",
         description: "Please try again.",

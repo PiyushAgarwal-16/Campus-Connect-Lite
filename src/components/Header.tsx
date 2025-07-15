@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BookUser, Calendar, LogOut, PlusCircle, User as UserIcon, Building2, Ticket, ScanLine, List } from "lucide-react";
+import { LogOut, PlusCircle, Building2, Ticket, ScanLine, List } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const Header = () => {

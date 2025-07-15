@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Image, Trash2, Download, RefreshCw } from 'lucide-react';
+import { Loader2, ImageIcon, Trash2, Download, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Event } from '@/lib/types';
 
@@ -121,7 +122,7 @@ export default function BannerManager({ event, onBannerUpdate, disabled = false 
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Image className="h-5 w-5" />
+          <ImageIcon className="h-5 w-5" />
           Event Banner
         </CardTitle>
         <CardDescription>
@@ -138,11 +139,13 @@ export default function BannerManager({ event, onBannerUpdate, disabled = false 
         {event.banner ? (
           <div className="space-y-4">
             <div className="relative">
-              <img
+              <Image
                 src={event.banner.url}
                 alt={`Banner for ${event.title}`}
-                className="w-full rounded-lg border shadow-sm"
-                style={{ maxHeight: '200px', objectFit: 'cover' }}
+                width={800}
+                height={200}
+                className="w-full rounded-lg border shadow-sm object-cover"
+                style={{ maxHeight: '200px' }}
               />
               <Badge 
                 variant="secondary" 
@@ -223,7 +226,7 @@ export default function BannerManager({ event, onBannerUpdate, disabled = false 
                 </>
               ) : (
                 <>
-                  <Image className="h-4 w-4" />
+                  <ImageIcon className="h-4 w-4" />
                   Generate Banner
                 </>
               )}

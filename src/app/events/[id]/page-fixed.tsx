@@ -79,6 +79,7 @@ export default function EventDetailsPage() {
         setRegistrationCount(prev => prev + 1);
         setShowConfirmDialog(false);
       } catch (error) {
+        console.error('Registration failed:', error);
         toast({
           title: "Registration Failed",
           description: "Please try again.",

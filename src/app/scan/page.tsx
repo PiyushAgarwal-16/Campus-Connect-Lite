@@ -205,7 +205,7 @@ export default function ScanTicketPage() {
                         <Camera />
                         Ticket Scanner
                     </CardTitle>
-                    <CardDescription>Point the camera at a student's QR code to validate their ticket.</CardDescription>
+                    <CardDescription>Point the camera at a student&apos;s QR code to validate their ticket.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className={scannedData ? 'hidden' : 'block'}>

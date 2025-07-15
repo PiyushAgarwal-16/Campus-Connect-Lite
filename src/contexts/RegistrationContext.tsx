@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { createContext, useState, useEffect, ReactNode, useContext, useCallback } from 'react';
+import React, { createContext, useState, useEffect, ReactNode, useContext, useCallback, useMemo } from 'react';
 import type { Registration } from '@/lib/types';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/lib/firebase';
@@ -49,13 +49,16 @@ export const RegistrationProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  }, [user, authLoading]);
+  }, [user?.id, user?.role, authLoading]); // Use stable user properties instead of user object
   
-  useEffect(() => {
-    fetchRegistrations();
-  }, [fetchRegistrations]);
+  // Initial fetch - only run when user changes, not when fetchRegistrations changes
+  useEffect(() => { // eslint-disable-line react-hooks/exhaustive-deps
+    if (!authLoading) {
+      fetchRegistrations();
+    }
+  }, [user?.id, user?.role, authLoading]); // Remove fetchRegistrations from dependencies
 
-  const registerForEvent = async (eventId: string) => {
+  const registerForEvent = useCallback(async (eventId: string) => {
     if (!user) {
       console.error("User must be logged in to register.");
       return;
@@ -78,9 +81,9 @@ export const RegistrationProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Error creating registration:", error);
     }
-  };
+  }, [user, registrations, fetchRegistrations]);
 
-  const markAttendance = async (registrationId: string) => {
+  const markAttendance = useCallback(async (registrationId: string) => {
     try {
       const regDocRef = doc(db, 'registrations', registrationId);
       const checkedInAt = new Date().toISOString();
@@ -103,19 +106,34 @@ export const RegistrationProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error("Error marking attendance:", error);
     }
-  };
+  }, [user?.role, fetchRegistrations]);
 
-  const userRegistrations = user ? registrations.filter(reg => reg.userId === user.id) : [];
+  const userRegistrations = useMemo(() => 
+    user ? registrations.filter(reg => reg.userId === user.id) : [],
+    [user, registrations]
+  );
 
-  const isUserRegistered = (eventId: string) => {
+  const isUserRegistered = useCallback((eventId: string) => {
     if (!user) return false;
     return userRegistrations.some(reg => reg.eventId === eventId);
-  };
+  }, [user, userRegistrations]);
 
-  const allRegistrations = user?.role === 'organizer' ? registrations : [];
+  const allRegistrations = useMemo(() => 
+    user?.role === 'organizer' ? registrations : [],
+    [user?.role, registrations]
+  );
+
+  const contextValue = useMemo(() => ({
+    userRegistrations,
+    allRegistrations,
+    registerForEvent,
+    isUserRegistered,
+    markAttendance,
+    loading
+  }), [userRegistrations, allRegistrations, registerForEvent, isUserRegistered, markAttendance, loading]);
 
   return (
-    <RegistrationContext.Provider value={{ userRegistrations, allRegistrations, registerForEvent, isUserRegistered, markAttendance, loading }}>
+    <RegistrationContext.Provider value={contextValue}>
       {children}
     </RegistrationContext.Provider>
   );

@@ -127,13 +127,13 @@ async function simulateBannerGeneration(prompt: string, input: BannerGenerationI
 }
 
 // Helper function to create banner with external image generation services
-export async function generateBannerWithDallE(prompt: string): Promise<string> {
+export async function generateBannerWithDallE(): Promise<string> {
   // This would integrate with OpenAI's DALL-E API
   // Implementation depends on your choice of image generation service
   throw new Error('DALL-E integration not implemented. Please use simulateBannerGeneration for testing.');
 }
 
-export async function generateBannerWithStableDiffusion(prompt: string): Promise<string> {
+export async function generateBannerWithStableDiffusion(): Promise<string> {
   // This would integrate with Stable Diffusion API
   // Implementation depends on your choice of image generation service
   throw new Error('Stable Diffusion integration not implemented. Please use simulateBannerGeneration for testing.');
